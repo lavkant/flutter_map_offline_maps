@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/map_ui_bloc.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
@@ -65,93 +66,113 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
 
           return Stack(
             children: [
-              FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  center: LatLng(16.159146, 73.332974),
-                  zoom: tempMinZoom * 1.0,
-                  maxZoom: tempMaxZoom * 1.0,
-                  // maxBounds: LatLngBounds.fromPoints([
-                  //   // LatLng(-90, 180),
-                  //   // LatLng(90, 180),
-                  //   // LatLng(90, -180),
-                  //   // LatLng(-90, -180),
-                  // ]),
-                  interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                  scrollWheelVelocity: 0.002,
-                  keepAlive: true,
-                  onMapReady: () {
-                    // _updatePointLatLng();
-                    // _countTiles();
-                  },
-                ),
-                // nonRotatedChildren: buildStdAttribution(
-                //   urlTemplate,
-                //   alignment: AttributionAlignment.bottomLeft,
-                // ),
-                children: [
-                  TileLayer(
-                    backgroundColor: Colors.transparent,
-                    urlTemplate: urlTemplate,
-                    tileProvider: GetIt.instance<StoreService>().getBaseMapStore != null
-                        ? FMTC.instance(baseMapStoreData['storeName']!).getTileProvider(
-                              FMTCTileProviderSettings(
-                                behavior: CacheBehavior.cacheOnly,
-                                cachedValidDuration: int.parse(
-                                          metadata.data!['validDuration']!,
-                                        ) ==
-                                        0
-                                    ? Duration.zero
-                                    : Duration(
-                                        days: int.parse(
-                                          metadata.data!['validDuration']!,
+              StreamBuilder(
+                  stream: mapUIBloc.loadingController,
+                  builder: (context, snapshot) {
+                    return FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        center: LatLng(16.159146, 73.332974),
+                        zoom: tempMinZoom * 1.0,
+                        maxZoom: tempMaxZoom * 1.0,
+                        // maxBounds: LatLngBounds.fromPoints([
+                        //   // LatLng(-90, 180),
+                        //   // LatLng(90, 180),
+                        //   // LatLng(90, -180),
+                        //   // LatLng(-90, -180),
+                        // ]),
+                        interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                        scrollWheelVelocity: 0.002,
+                        keepAlive: true,
+                        onMapReady: () {
+                          // _updatePointLatLng();
+                          // _countTiles();
+                        },
+                      ),
+                      // nonRotatedChildren: buildStdAttribution(
+                      //   urlTemplate,
+                      //   alignment: AttributionAlignment.bottomLeft,
+                      // ),
+                      children: [
+                        TileLayer(
+                          backgroundColor: Colors.transparent,
+                          urlTemplate: urlTemplate,
+                          tileProvider: GetIt.instance<StoreService>().getBaseMapStore != null
+                              ? FMTC.instance(baseMapStoreData['storeName']!).getTileProvider(
+                                    FMTCTileProviderSettings(
+                                      behavior: CacheBehavior.cacheOnly,
+                                      cachedValidDuration: int.parse(
+                                                metadata.data!['validDuration']!,
+                                              ) ==
+                                              0
+                                          ? Duration.zero
+                                          : Duration(
+                                              days: int.parse(
+                                                metadata.data!['validDuration']!,
+                                              ),
+                                            ),
+                                      maxStoreLength: int.parse(
+                                        metadata.data!['maxLength']!,
+                                      ),
+                                    ),
+                                  )
+                              : NetworkNoRetryTileProvider(),
+                          maxZoom: tempMaxZoom * 1.0,
+                          // userAgentPackageName: 'dev.org.fmtc.example.app',
+                          // panBuffer: 3,
+                          // backgroundColor: const Color(0xFFaad3df),
+                          // backgroundColor: Colors.transparent,
+                        ),
+                        if (mapUIBloc.enableBathyMetry == true &&
+                            GetIt.instance<StoreService>().bathymetryLayerStore != null)
+                          TileLayer(
+                            backgroundColor: Colors.transparent,
+
+                            urlTemplate: bathyMapStoreData['sourceURL'],
+                            tileProvider: GetIt.instance<StoreService>().bathymetryLayerStore != null
+                                ? FMTC.instance(bathyMapStoreData['storeName']!).getTileProvider(
+                                      FMTCTileProviderSettings(
+                                        behavior: CacheBehavior.cacheOnly,
+                                        cachedValidDuration: int.parse(
+                                                  metadata.data!['validDuration']!,
+                                                ) ==
+                                                0
+                                            ? Duration.zero
+                                            : Duration(
+                                                days: int.parse(
+                                                  metadata.data!['validDuration']!,
+                                                ),
+                                              ),
+                                        maxStoreLength: int.parse(
+                                          metadata.data!['maxLength']!,
                                         ),
                                       ),
-                                maxStoreLength: int.parse(
-                                  metadata.data!['maxLength']!,
-                                ),
-                              ),
-                            )
-                        : NetworkNoRetryTileProvider(),
-                    maxZoom: tempMaxZoom * 1.0,
-                    // userAgentPackageName: 'dev.org.fmtc.example.app',
-                    // panBuffer: 3,
-                    // backgroundColor: const Color(0xFFaad3df),
-                    // backgroundColor: Colors.transparent,
-                  ),
-                  TileLayer(
-                    backgroundColor: Colors.transparent,
+                                    )
+                                : NetworkNoRetryTileProvider(),
 
-                    urlTemplate: bathyMapStoreData['sourceURL'],
-                    tileProvider: GetIt.instance<StoreService>().bathymetryLayerStore != null
-                        ? FMTC.instance(bathyMapStoreData['storeName']!).getTileProvider(
-                              FMTCTileProviderSettings(
-                                behavior: CacheBehavior.cacheOnly,
-                                cachedValidDuration: int.parse(
-                                          metadata.data!['validDuration']!,
-                                        ) ==
-                                        0
-                                    ? Duration.zero
-                                    : Duration(
-                                        days: int.parse(
-                                          metadata.data!['validDuration']!,
-                                        ),
-                                      ),
-                                maxStoreLength: int.parse(
-                                  metadata.data!['maxLength']!,
-                                ),
-                              ),
-                            )
-                        : NetworkNoRetryTileProvider(),
+                            // maxZoom: tempMaxZoom * 1.0,
+                            // panBuffer: 3,
+                            // backgroundColor:,
+                          ),
 
-                    // maxZoom: tempMaxZoom * 1.0,
-                    // panBuffer: 3,
-                    // backgroundColor:,
-                  ),
-
-                  // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
-                ],
-              ),
+                        // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
+                      ],
+                    );
+                  }),
+              Positioned(
+                  bottom: 10,
+                  left: 10,
+                  child: StreamBuilder(
+                      stream: mapUIBloc.loadingController,
+                      builder: (context, snapshot) {
+                        return IconButton(
+                            onPressed: () {
+                              mapUIBloc.toggleBathyMetry();
+                            },
+                            icon: mapUIBloc.enableBathyMetry
+                                ? const Icon(Icons.toggle_on_rounded)
+                                : const Icon(Icons.toggle_off_rounded));
+                      }))
             ],
           );
         },
