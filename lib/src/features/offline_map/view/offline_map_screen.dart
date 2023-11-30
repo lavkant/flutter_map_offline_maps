@@ -91,6 +91,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                 // ),
                 children: [
                   TileLayer(
+                    backgroundColor: Colors.transparent,
                     urlTemplate: urlTemplate,
                     tileProvider: GetIt.instance<StoreService>().getBaseMapStore != null
                         ? FMTC.instance(baseMapStoreData['storeName']!).getTileProvider(
@@ -113,10 +114,42 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             )
                         : NetworkNoRetryTileProvider(),
                     maxZoom: tempMaxZoom * 1.0,
-                    userAgentPackageName: 'dev.org.fmtc.example.app',
-                    panBuffer: 3,
-                    backgroundColor: const Color(0xFFaad3df),
+                    // userAgentPackageName: 'dev.org.fmtc.example.app',
+                    // panBuffer: 3,
+                    // backgroundColor: const Color(0xFFaad3df),
+                    // backgroundColor: Colors.transparent,
                   ),
+                  TileLayer(
+                    backgroundColor: Colors.transparent,
+
+                    urlTemplate: bathyMapStoreData['sourceURL'],
+                    tileProvider: GetIt.instance<StoreService>().bathymetryLayerStore != null
+                        ? FMTC.instance(bathyMapStoreData['storeName']!).getTileProvider(
+                              FMTCTileProviderSettings(
+                                behavior: CacheBehavior.cacheOnly,
+                                cachedValidDuration: int.parse(
+                                          metadata.data!['validDuration']!,
+                                        ) ==
+                                        0
+                                    ? Duration.zero
+                                    : Duration(
+                                        days: int.parse(
+                                          metadata.data!['validDuration']!,
+                                        ),
+                                      ),
+                                maxStoreLength: int.parse(
+                                  metadata.data!['maxLength']!,
+                                ),
+                              ),
+                            )
+                        : NetworkNoRetryTileProvider(),
+
+                    // maxZoom: tempMaxZoom * 1.0,
+                    // panBuffer: 3,
+                    // backgroundColor:,
+                  ),
+
+                  // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
                 ],
               ),
             ],

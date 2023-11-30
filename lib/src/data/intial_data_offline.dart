@@ -2,7 +2,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 const int tempMinZoom = 6;
-const int tempMaxZoom = 12;
+const int tempMaxZoom = 9;
 
 String _access_token = const String.fromEnvironment("ACCESS_TOKEN");
 String _url = "https://api.mapbox.com/v4/captainfreshin.af8ixn72/1/0/0@2x.jpg90";
@@ -18,6 +18,6 @@ getFinalUrl({required String url}) {
 // const estimatedTiles = 4000;
 
 final LatLngBounds tempBound = LatLngBounds(
-  LatLng(16.159146, 73.332974),
-  LatLng(9.068349, 79.940182),
+  LatLng(13.994575, 70.214843),
+  LatLng(4.011303, 86.885141),
 );

@@ -6,10 +6,20 @@ import 'package:fmtc_plus_background_downloading/fmtc_plus_background_downloadin
 final Map<String, String> baseMapStoreData = {
   "storeName": "baseMap",
   "sourceURL":
+      // "https://api.mapbox.com/styles/v1/captainfreshin/clchytjyh002915mrs9klczdk/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
       "https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGF2a2FudCIsImEiOiJjbG9qemdzZ3MyNGRoMnFvaWxzMjYzemtoIn0.3lnV7d77eu-M8DnFZpRcoQ",
   "validDuration": "100",
   "maxLength": "20000"
 };
+
+final Map<String, String> bathyMapStoreData = {
+  "storeName": "bathyMetryLayer",
+  "sourceURL":
+      "https://api.mapbox.com/styles/v1/captainfreshin/clcsqekjd001n14qz4f6xyorn/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
+  "validDuration": "100",
+  "maxLength": "20000"
+};
+// https://api.mapbox.com/styles/v1/captainfreshin/clopltpd800j401pb7e3ngit2/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w
 
 class StoreService {
   // CREATE STORE
@@ -50,8 +60,26 @@ class StoreService {
   get getBaseMapStore => _baseMapStore;
   get getBaseMapStoreMeta => _baseMapStore?.metadata;
 
-  clearDataFromStore() {
-    _baseMapStore?.manage.delete();
+  createbathymetryLayerStore() async {
+    bathymetryLayerStore = FMTC.instance(bathyMapStoreData['storeName']!);
+    await bathymetryLayerStore!.manage.createAsync();
+    await bathymetryLayerStore!.metadata.addAsync(
+      key: 'sourceURL',
+      value: bathyMapStoreData["sourceURL"]!,
+    );
+    await bathymetryLayerStore!.metadata.addAsync(
+      key: 'validDuration',
+      value: bathyMapStoreData["validDuration"]!,
+    );
+    await bathymetryLayerStore!.metadata.addAsync(
+      key: 'maxLength',
+      value: bathyMapStoreData["maxLength"]!,
+    );
+  }
+
+  clearDataFromStore() async {
+    await _baseMapStore?.manage.delete();
+    await bathymetryLayerStore?.manage.delete();
   }
 
   downloadBaseMapStore({
@@ -86,6 +114,56 @@ class StoreService {
     } else {
       // DOWNLOAD BACKGROUND
       _baseMapStore!.download.startBackground(
+          region: region!.toDownloadable(
+              minZoom,
+              maxZoom,
+              TileLayer(
+                urlTemplate: metadata['sourceURL'],
+              ),
+              // preventRedownload: ,
+              seaTileRemoval: false,
+              // parallelThreads: (await SharedPreferences.getInstance()).getBool(
+              //           'bypassDownloadThreadsLimitation',
+              //         ) ??
+              //         false
+              //     ? 10
+              //     : 2,
+              parallelThreads: parallelThreads));
+    }
+  }
+
+  downloadBathyMetryMapStore({
+    required bool downloadForeground,
+    required LatLngBounds bound,
+    required int minZoom,
+    required int maxZoom,
+  }) async {
+    await createbathymetryLayerStore();
+    final Map<String, String> metadata = await bathymetryLayerStore!.metadata.readAsync;
+    BaseRegion? region = RegionService().getBaseMapRegionFromCoOrdinates(bound);
+    int parallelThreads = 5;
+    if (downloadForeground == true) {
+      setDownloadProgress(bathymetryLayerStore!.download
+          .startForeground(
+              region: region!.toDownloadable(
+                  minZoom,
+                  maxZoom,
+                  TileLayer(
+                    urlTemplate: metadata['sourceURL'],
+                  ),
+                  // preventRedownload: ,
+                  seaTileRemoval: false,
+                  // parallelThreads: (await SharedPreferences.getInstance()).getBool(
+                  //           'bypassDownloadThreadsLimitation',
+                  //         ) ??
+                  //         false
+                  //     ? 10
+                  //     : 2,
+                  parallelThreads: parallelThreads))
+          .asBroadcastStream());
+    } else {
+      // DOWNLOAD BACKGROUND
+      bathymetryLayerStore!.download.startBackground(
           region: region!.toDownloadable(
               minZoom,
               maxZoom,

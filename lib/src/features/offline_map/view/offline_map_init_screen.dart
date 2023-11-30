@@ -53,6 +53,7 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
     // offlineTileProvider!.preloadTiles();
 
     GetIt.instance<StoreService>().createStoreForBaseMap();
+    GetIt.instance<StoreService>().createbathymetryLayerStore();
 
     // IN THE END TRY REDIRECTION
   }
@@ -106,6 +107,12 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
                         : const CircularProgressIndicator(),
               ),
             ),
+            TextButton(
+                onPressed: () async {
+                  await GetIt.instance<StoreService>().downloadBathyMetryMapStore(
+                      downloadForeground: true, bound: tempBound, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
+                },
+                child: const Text("Download BathyMetry")),
             TextButton(
                 onPressed: () async {
                   await GetIt.instance<StoreService>().downloadBaseMapStore(
