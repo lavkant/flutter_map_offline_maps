@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_init_screen.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? damagedDatabaseDeleted;
+  const MyApp({super.key, this.damagedDatabaseDeleted});
 
   // This widget is the root of your application.
   @override
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-        home: const OfflineMapInit());
+        home: OfflineMapInit(damagedDatabaseDeleted: damagedDatabaseDeleted));
   }
 }
 
