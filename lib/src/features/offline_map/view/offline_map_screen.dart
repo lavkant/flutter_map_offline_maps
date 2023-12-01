@@ -5,6 +5,7 @@ import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/map_ui_blo
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lat_lon_grid_plugin/lat_lon_grid_plugin.dart';
 import 'package:latlong2/latlong.dart';
 
 class OfflineMapScreen extends StatefulWidget {
@@ -155,10 +156,43 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             // backgroundColor:,
                           ),
 
+                        if (mapUIBloc.enableGrid == true)
+                          LatLonGridLayer(
+                            options: LatLonGridLayerOptions(
+                              lineWidth: 0.5,
+                              lineColor: Colors.black87,
+                              labelStyle: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 10.0,
+                              ),
+                              showCardinalDirections: true,
+                              showCardinalDirectionsAsPrefix: false,
+                              showLabels: true,
+                              rotateLonLabels: true,
+                              placeLabelsOnLines: false,
+                              offsetLonLabelsBottom: 200.0,
+                              offsetLatLabelsLeft: 20.0,
+                            ),
+                          ),
+
                         // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
                       ],
                     );
                   }),
+              Positioned(
+                  bottom: 30,
+                  left: 10,
+                  child: StreamBuilder(
+                      stream: mapUIBloc.loadingController,
+                      builder: (context, snapshot) {
+                        return IconButton(
+                            onPressed: () {
+                              mapUIBloc.toggleGrid();
+                            },
+                            icon: mapUIBloc.enableGrid
+                                ? const Icon(Icons.toggle_on_rounded)
+                                : const Icon(Icons.toggle_off_rounded));
+                      })),
               Positioned(
                   bottom: 10,
                   left: 10,
