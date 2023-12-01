@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/store_tile.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_screen.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
@@ -97,13 +98,15 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
                             ? const SizedBox()
                             : ListView.builder(
                                 itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) => ListTile(
-                                  title: Text(snapshot.data![index].storeName),
-                                  key: ValueKey(
-                                    snapshot.data![index].storeName,
-                                  ),
-                                ),
-                              )
+                                // itemBuilder: (context, index) => ListTile(
+                                //   title: Text(snapshot.data![index].storeName),
+                                //   key: ValueKey(
+                                //     snapshot.data![index].storeName,
+                                //   ),
+                                // ),
+                                itemBuilder: (context, index) => StoreTile(
+                                      store: snapshot.data![index],
+                                    ))
                         : const CircularProgressIndicator(),
               ),
             ),
