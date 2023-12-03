@@ -34,9 +34,9 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     markerService.getMarkers();
     // Listen to location changes
     Geolocator.getPositionStream().listen((Position position) {
-      setState(() {
-        _currentPosition = position;
-      });
+      // setState(() {
+      _currentPosition = position;
+      // });
     });
     _getCurrentLocation();
   }
@@ -356,7 +356,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             onPressed: () {
                               mapUIBloc.toggleCustomMarkers();
                             },
-                            icon: mapUIBloc.enableGrid
+                            icon: mapUIBloc.enableCustomMarkers
                                 ? const Icon(Icons.toggle_on_rounded)
                                 : const Icon(Icons.toggle_off_rounded));
                       })),
