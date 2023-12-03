@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/map_ui_bloc.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/marker_widget.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
+import 'package:flutter_map_offline_poc/src/services/marker_service/marker_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lat_lon_grid_plugin/lat_lon_grid_plugin.dart';
@@ -18,38 +21,95 @@ class OfflineMapScreen extends StatefulWidget {
 }
 
 class _OfflineMapScreenState extends State<OfflineMapScreen> {
+  final MarkerService markerService = MarkerService();
   final _mapKey = GlobalKey<State<StatefulWidget>>();
   final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    markerService.getMarkers();
+  }
+
+  Future<void> _showAddMarkerDialog(BuildContext context, LatLng position) async {
+    TextEditingController notesController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Marker'),
+          content: Column(
+            children: [
+              const Text('Enter notes:'),
+              TextField(controller: notesController),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await markerService.addMarker(position, notesController.text);
+                await markerService.getMarkers();
+                // setState(() {});
+                Navigator.of(context).pop();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditMarkerDialog(BuildContext context, CustomMarker marker) async {
+    TextEditingController notesController = TextEditingController(text: marker.notes);
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Marker'),
+          content: Column(
+            children: [
+              const Text('Enter new notes:'),
+              TextField(controller: notesController),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await markerService.editMarker(marker.id!, notesController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {},
-        child: const Icon(Icons.delete),
+        onPressed: () async {
+          await markerService.clearMarkers();
+        },
+        child: const Icon(Icons.delete_forever),
       ),
-      // body: FlutterMap(
-      //   options: MapOptions(maxZoom: tempMaxZoom * 1.0),
-      //   children: [
-      //     TileLayer(
-      //       tileProvider: FMTC.instance(baseMapStoreData['storeName']!).getTileProvider(
-      //             FMTCTileProviderSettings(
-      //               behavior: CacheBehavior.cacheOnly,
-      //               cachedValidDuration: int.parse(
-      //                         FMTC.instance(baseMapStoreData['storeName']!).metadata['validDuration'],
-      //                       ) ==
-      //                       0
-      //                   ? Duration.zero
-      //                   : Duration(
-      //                       days: int.parse(GetIt.instance<StoreService>().getBaseMapStoreMeta['validDuration']),
-      //                     ),
-      //               maxStoreLength: int.parse(GetIt.instance<StoreService>().getBaseMapStoreMeta['maxLength']),
-      //             ),
-      //           ),
-      //       maxZoom: tempMaxZoom * 1.0,
-      //       urlTemplate: '',
-      //     ),
-      //   ],
-      // ),
       body: FutureBuilder<Map<String, String>?>(
         future: GetIt.instance<StoreService>().getBaseMapStore == null
             ? Future.sync(() => {})
@@ -89,7 +149,11 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           // _updatePointLatLng();
                           // _countTiles();
                         },
+                        onLongPress: (tapPosition, point) {
+                          _showAddMarkerDialog(context, point);
+                        },
                       ),
+
                       // nonRotatedChildren: buildStdAttribution(
                       //   urlTemplate,
                       //   alignment: AttributionAlignment.bottomLeft,
@@ -174,6 +238,78 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                               offsetLatLabelsLeft: 20.0,
                             ),
                           ),
+
+                        // if (markerService.markers.isNotEmpty)
+                        // StreamBuilder(
+                        //     stream: markerService.loadingController,
+                        //     builder: (context, snapshot) {
+                        //       return MarkerLayer(
+                        //         markers: markerService.markers
+                        //             .map((e) => Marker(
+                        //                   point: e.position,
+                        //                   builder: (context) {
+                        //                     return MarkerWidget(
+                        //                       marker: e,
+                        //                       onEdit: () async {
+                        //                         Navigator.pop(context);
+
+                        //                         await _showEditMarkerDialog(context, e);
+                        //                       },
+                        //                       onDelete: () async {
+                        //                         Navigator.pop(context);
+                        //                         await markerService.removeMarker(e.id!);
+                        //                       },
+                        //                     );
+                        //                   },
+                        //                 ))
+                        //             .toList(),
+                        //       );
+                        //     })
+                        // if (markerService.markers.isNotEmpty)
+                        StreamBuilder(
+                            stream: markerService.loadingController,
+                            builder: (context, snapshot) {
+                              return MarkerClusterLayerWidget(
+                                options: MarkerClusterLayerOptions(
+                                  maxClusterRadius: 120,
+                                  size: const Size(40, 40),
+                                  // alignment: Alignment.center,
+                                  // padding: const EdgeInsets.all(50),
+                                  // maxZoom: 15,
+                                  markers: markerService.markers
+                                      .map((e) => Marker(
+                                            point: e.position,
+                                            builder: (context) {
+                                              return MarkerWidget(
+                                                marker: e,
+                                                onEdit: () async {
+                                                  Navigator.pop(context);
+
+                                                  await _showEditMarkerDialog(context, e);
+                                                },
+                                                onDelete: () async {
+                                                  Navigator.pop(context);
+                                                  await markerService.removeMarker(e.id!);
+                                                },
+                                              );
+                                            },
+                                          ))
+                                      .toList(),
+                                  builder: (context, markers) {
+                                    return Container(
+                                      decoration:
+                                          BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.blue),
+                                      child: Center(
+                                        child: Text(
+                                          markers.length.toString(),
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            }),
 
                         // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
                       ],

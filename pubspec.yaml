@@ -47,6 +47,7 @@ dependencies:
   fmtc_plus_background_downloading: ^8.0.0
   fmtc_plus_sharing: ^8.0.0
   lat_lon_grid_plugin: ^0.2.5
+  flutter_map_marker_cluster: ^1.1.1
 
 
 dev_dependencies:
