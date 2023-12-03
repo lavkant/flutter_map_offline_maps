@@ -183,11 +183,12 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                       //   alignment: AttributionAlignment.bottomLeft,
                       // ),
                       children: [
-                        LocationMarkerLayer(
-                            position: LocationMarkerPosition(
-                                latitude: _currentPosition?.latitude ?? 0,
-                                longitude: _currentPosition?.longitude ?? 0,
-                                accuracy: _currentPosition?.accuracy ?? 0)),
+                        if (_currentPosition?.latitude != null && _currentPosition?.longitude != null)
+                          LocationMarkerLayer(
+                              position: LocationMarkerPosition(
+                                  latitude: _currentPosition?.latitude ?? 0,
+                                  longitude: _currentPosition?.longitude ?? 0,
+                                  accuracy: _currentPosition?.accuracy ?? 0)),
                         TileLayer(
                           backgroundColor: Colors.transparent,
                           urlTemplate: urlTemplate,
@@ -295,55 +296,70 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         //       );
                         //     })
                         // if (markerService.markers.isNotEmpty)
-                        StreamBuilder(
-                            stream: markerService.loadingController,
-                            builder: (context, snapshot) {
-                              return MarkerClusterLayerWidget(
-                                options: MarkerClusterLayerOptions(
-                                  maxClusterRadius: 120,
-                                  size: const Size(40, 40),
-                                  // alignment: Alignment.center,
-                                  // padding: const EdgeInsets.all(50),
-                                  // maxZoom: 15,
-                                  markers: markerService.markers
-                                      .map((e) => Marker(
-                                            point: e.position,
-                                            builder: (context) {
-                                              return MarkerWidget(
-                                                marker: e,
-                                                onEdit: () async {
-                                                  Navigator.pop(context);
+                        if (mapUIBloc.enableCustomMarkers && markerService.markers.isNotEmpty)
+                          StreamBuilder(
+                              stream: markerService.loadingController,
+                              builder: (context, snapshot) {
+                                return MarkerClusterLayerWidget(
+                                  options: MarkerClusterLayerOptions(
+                                    maxClusterRadius: 120,
+                                    size: const Size(40, 40),
+                                    // alignment: Alignment.center,
+                                    // padding: const EdgeInsets.all(50),
+                                    // maxZoom: 15,
+                                    markers: markerService.markers
+                                        .map((e) => Marker(
+                                              point: e.position,
+                                              builder: (context) {
+                                                return MarkerWidget(
+                                                  marker: e,
+                                                  onEdit: () async {
+                                                    Navigator.pop(context);
 
-                                                  await _showEditMarkerDialog(context, e);
-                                                },
-                                                onDelete: () async {
-                                                  Navigator.pop(context);
-                                                  await markerService.removeMarker(e.id!);
-                                                },
-                                              );
-                                            },
-                                          ))
-                                      .toList(),
-                                  builder: (context, markers) {
-                                    return Container(
-                                      decoration:
-                                          BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.blue),
-                                      child: Center(
-                                        child: Text(
-                                          markers.length.toString(),
-                                          style: const TextStyle(color: Colors.white),
+                                                    await _showEditMarkerDialog(context, e);
+                                                  },
+                                                  onDelete: () async {
+                                                    Navigator.pop(context);
+                                                    await markerService.removeMarker(e.id!);
+                                                  },
+                                                );
+                                              },
+                                            ))
+                                        .toList(),
+                                    builder: (context, markers) {
+                                      return Container(
+                                        decoration:
+                                            BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.blue),
+                                        child: Center(
+                                          child: Text(
+                                            markers.length.toString(),
+                                            style: const TextStyle(color: Colors.white),
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              );
-                            }),
+                                      );
+                                    },
+                                  ),
+                                );
+                              }),
 
                         // if (GetIt.instance<StoreService>().bathymetryLayerStore != null)
                       ],
                     );
                   }),
+              Positioned(
+                  bottom: 60,
+                  left: 10,
+                  child: StreamBuilder(
+                      stream: mapUIBloc.loadingController,
+                      builder: (context, snapshot) {
+                        return IconButton(
+                            onPressed: () {
+                              mapUIBloc.toggleCustomMarkers();
+                            },
+                            icon: mapUIBloc.enableGrid
+                                ? const Icon(Icons.toggle_on_rounded)
+                                : const Icon(Icons.toggle_off_rounded));
+                      })),
               Positioned(
                   bottom: 30,
                   left: 10,
