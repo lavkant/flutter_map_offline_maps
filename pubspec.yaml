@@ -48,7 +48,8 @@ dependencies:
   fmtc_plus_sharing: ^8.0.0
   lat_lon_grid_plugin: ^0.2.5
   flutter_map_marker_cluster: ^1.1.1
-
+  flutter_map_location_marker: ^6.0.0
+  geolocator: ^9.0.2
 
 dev_dependencies:
   flutter_lints: ^2.0.0

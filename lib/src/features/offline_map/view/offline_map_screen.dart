@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/map_ui_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_offline_poc/src/services/marker_service/marker_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lat_lon_grid_plugin/lat_lon_grid_plugin.dart';
 import 'package:latlong2/latlong.dart';
@@ -24,11 +26,33 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
   final MarkerService markerService = MarkerService();
   final _mapKey = GlobalKey<State<StatefulWidget>>();
   final MapController _mapController = MapController();
+  Position? _currentPosition;
 
   @override
   void initState() {
     super.initState();
     markerService.getMarkers();
+    // Listen to location changes
+    Geolocator.getPositionStream().listen((Position position) {
+      setState(() {
+        _currentPosition = position;
+      });
+    });
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _currentPosition = position;
+      });
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   Future<void> _showAddMarkerDialog(BuildContext context, LatLng position) async {
@@ -159,6 +183,11 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                       //   alignment: AttributionAlignment.bottomLeft,
                       // ),
                       children: [
+                        LocationMarkerLayer(
+                            position: LocationMarkerPosition(
+                                latitude: _currentPosition?.latitude ?? 0,
+                                longitude: _currentPosition?.longitude ?? 0,
+                                accuracy: _currentPosition?.accuracy ?? 0)),
                         TileLayer(
                           backgroundColor: Colors.transparent,
                           urlTemplate: urlTemplate,
