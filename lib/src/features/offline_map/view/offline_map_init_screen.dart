@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/store_tile.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_screen.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_regions/bloc/offline_regions_bloc.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
@@ -46,6 +47,8 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
     //   }
     // });
 
+    GetIt.instance<OfflineRegionsBloc>().loadCSVData(csvPath: 'assets/csv/squared_region.csv');
+
     super.initState();
   }
 
@@ -54,6 +57,8 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
     // offlineTileProvider!.preloadTiles();
 
     GetIt.instance<StoreService>().createStoreForBaseMap();
+    GetIt.instance<StoreService>().createStoreForBaseMap2();
+
     GetIt.instance<StoreService>().createbathymetryLayerStore();
 
     // IN THE END TRY REDIRECTION
@@ -121,7 +126,13 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
                   await GetIt.instance<StoreService>().downloadBaseMapStore(
                       downloadForeground: true, bound: tempBound, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
                 },
-                child: const Icon(Icons.download)),
+                child: const Text("Download Base Map 1")),
+            TextButton(
+                onPressed: () async {
+                  await GetIt.instance<StoreService>().downloadBaseMapStore2(
+                      downloadForeground: true, bound: tempBound2, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
+                },
+                child: const Text("Download Base Map 2")),
             TextButton(
                 onPressed: () async {
                   await GetIt.instance<StoreService>().clearDataFromStore();

@@ -157,26 +157,29 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                     return FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
-                        center: LatLng(16.159146, 73.332974),
-                        zoom: tempMinZoom * 1.0,
-                        maxZoom: tempMaxZoom * 1.0,
-                        // maxBounds: LatLngBounds.fromPoints([
-                        //   // LatLng(-90, 180),
-                        //   // LatLng(90, 180),
-                        //   // LatLng(90, -180),
-                        //   // LatLng(-90, -180),
-                        // ]),
-                        interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                        scrollWheelVelocity: 0.002,
-                        keepAlive: true,
-                        onMapReady: () {
-                          // _updatePointLatLng();
-                          // _countTiles();
-                        },
-                        onLongPress: (tapPosition, point) {
-                          _showAddMarkerDialog(context, point);
-                        },
-                      ),
+                          center: LatLng(16.159146, 73.332974),
+                          zoom: tempMinZoom * 1.0,
+                          maxZoom: tempMaxZoom * 1.0,
+                          // maxBounds: LatLngBounds.fromPoints([
+                          //   // LatLng(-90, 180),
+                          //   // LatLng(90, 180),
+                          //   // LatLng(90, -180),
+                          //   // LatLng(-90, -180),
+                          // ]),
+                          interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                          scrollWheelVelocity: 0.002,
+                          keepAlive: true,
+                          onMapReady: () {
+                            // _updatePointLatLng();
+                            // _countTiles();
+                          },
+                          onLongPress: (tapPosition, point) {
+                            _showAddMarkerDialog(context, point);
+                          },
+                          onTap: (tapPosition, point) {
+                            // debugPrint("tapPosition ${tapPosition.relative}");
+                            // FMTC.instance(bathyMapStoreData['storeName']!)
+                          }),
 
                       // nonRotatedChildren: buildStdAttribution(
                       //   urlTemplate,
@@ -192,6 +195,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         TileLayer(
                           backgroundColor: Colors.transparent,
                           urlTemplate: urlTemplate,
+
                           tileProvider: GetIt.instance<StoreService>().getBaseMapStore != null
                               ? FMTC.instance(baseMapStoreData['storeName']!).getTileProvider(
                                     FMTCTileProviderSettings(
@@ -218,6 +222,38 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           // backgroundColor: const Color(0xFFaad3df),
                           // backgroundColor: Colors.transparent,
                         ),
+
+                        TileLayer(
+                          backgroundColor: Colors.transparent,
+                          urlTemplate: urlTemplate,
+
+                          tileProvider: GetIt.instance<StoreService>().getBaseMapStore2 != null
+                              ? FMTC.instance(baseMapStoreData2['storeName']!).getTileProvider(
+                                    FMTCTileProviderSettings(
+                                      behavior: CacheBehavior.cacheOnly,
+                                      cachedValidDuration: int.parse(
+                                                metadata.data!['validDuration']!,
+                                              ) ==
+                                              0
+                                          ? Duration.zero
+                                          : Duration(
+                                              days: int.parse(
+                                                metadata.data!['validDuration']!,
+                                              ),
+                                            ),
+                                      maxStoreLength: int.parse(
+                                        metadata.data!['maxLength']!,
+                                      ),
+                                    ),
+                                  )
+                              : NetworkNoRetryTileProvider(),
+                          maxZoom: tempMaxZoom * 1.0,
+                          // userAgentPackageName: 'dev.org.fmtc.example.app',
+                          // panBuffer: 3,
+                          // backgroundColor: const Color(0xFFaad3df),
+                          // backgroundColor: Colors.transparent,
+                        ),
+
                         if (mapUIBloc.enableBathyMetry == true &&
                             GetIt.instance<StoreService>().bathymetryLayerStore != null)
                           TileLayer(

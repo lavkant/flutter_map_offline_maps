@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_init_screen.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_regions/view/offline_region_map.dart';
 
 class MyApp extends StatelessWidget {
   final String? damagedDatabaseDeleted;
@@ -30,7 +31,9 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-        home: OfflineMapInit(damagedDatabaseDeleted: damagedDatabaseDeleted));
+        // home: OfflineMapInit(damagedDatabaseDeleted: damagedDatabaseDeleted)
+        home: CustomMap(damagedDatabaseDeleted: damagedDatabaseDeleted),
+        );
   }
 }
 

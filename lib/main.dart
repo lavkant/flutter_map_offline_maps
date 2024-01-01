@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/app.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/offline_map_bloc.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_regions/bloc/offline_regions_bloc.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_regions/bloc/regions_sqlite_bloc.dart';
 import 'package:flutter_map_offline_poc/src/services/databse/databse_helper.dart';
+import 'package:flutter_map_offline_poc/src/services/databse/databse_helper_regions.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
+import 'package:flutter_map_offline_poc/src/services/fmtc/store_service2.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,8 +25,15 @@ void main() async {
     //   getIt.registerSingleton<InitialBloc>(InitialBloc(), signalsReady: true);
     getIt.registerSingleton<OfflineMapBloc>(OfflineMapBloc(), signalsReady: true);
     getIt.registerSingleton<StoreService>(StoreService(), signalsReady: true);
+    getIt.registerSingleton<StoreService2>(StoreService2(), signalsReady: true);
+    getIt.registerSingleton<RegionsSqliteBloc>(RegionsSqliteBloc(), signalsReady: true);
+    getIt.registerSingleton<OfflineRegionsBloc>(OfflineRegionsBloc(), signalsReady: true);
+
+    
+
     // THIS WILL INTIALISE THE DATABASE
     await DatabaseHelper.database;
+    await DatabaseRegionHelper.database;
 
     // getIt.registerSingleton<MapboxTileDownloadService>(MapboxTileDownloadService(), signalsReady: true);
   }
