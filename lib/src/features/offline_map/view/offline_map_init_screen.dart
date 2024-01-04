@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map_offline_poc/src/data/intial_data_offline.dart';
+import 'package:flutter_map_offline_poc/src/features/download_manager/bloc/offline_map_init_screen_bloc.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/store_tile.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_screen.dart';
-import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
+import 'package:flutter_map_offline_poc/src/services/fmtc/import_store_service.dart';
+// import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:get_it/get_it.dart';
 
@@ -16,6 +17,16 @@ class OfflineMapInit extends StatefulWidget {
 
 class _OfflineMapInitState extends State<OfflineMapInit> {
   late Future<List<StoreDirectory>> _stores;
+
+  void listStores() {
+    _stores = FMTC.instance.rootDirectory.stats.storesAvailableAsync;
+  }
+
+  getAndUpdateStore() async {
+    final d = await FMTC.instance.rootDirectory.stats.storesAvailableAsync;
+    GetIt.instance<ImportStoreService>().getAvailableStores(availableStores: d);
+  }
+
   @override
   void initState() {
     if (widget.damagedDatabaseDeleted != null) {
@@ -30,7 +41,6 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
       );
     }
     initilizer();
-    void listStores() => _stores = FMTC.instance.rootDirectory.stats.storesAvailableAsync;
 
     listStores();
     FMTC.instance.rootDirectory.stats.watchChanges().listen((_) {
@@ -39,7 +49,8 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
         setState(() {});
       }
     });
-
+    getAndUpdateStore();
+    GetIt.instance<OfflineMapInitScreenBloc>().getAllDownloadedFMTCFiles();
     // GetIt.instance<StoreService>().downloadProgress?.listen((event) {
     //   if (event.percentageProgress == 100) {
     //     ifMapDownlaodedMoveToMapScreen();
@@ -53,8 +64,8 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
     // PROCESS ALL FIRST
     // offlineTileProvider!.preloadTiles();
 
-    GetIt.instance<StoreService>().createStoreForBaseMap();
-    GetIt.instance<StoreService>().createbathymetryLayerStore();
+    // GetIt.instance<StoreService>().createStoreForBaseMap();
+    // GetIt.instance<StoreService>().createbathymetryLayerStore();
 
     // IN THE END TRY REDIRECTION
   }
@@ -78,13 +89,22 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
       //             item: GetIt.instance<OfflineMapBloc>().userSelectedRegionToDownload!,
       //           )));
       // }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const OfflineMapScreen()));
-          // GetIt.instance<StoreService>().clearDataFromStore();
-        },
-        child: const Icon(Icons.fork_right),
-      ),
+      floatingActionButton: FutureBuilder<List<StoreDirectory>>(
+          future: _stores,
+          builder: (context, snapshot) {
+            if (snapshot.hasError || snapshot.data == null) {
+              return const SizedBox();
+            } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+              return const SizedBox();
+            }
+            return FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const OfflineMapScreen()));
+                // GetIt.instance<StoreService>().clearDataFromStore();
+              },
+              child: const Icon(Icons.fork_right),
+            );
+          }),
       body: Center(
         child: Column(
           children: [
@@ -110,34 +130,55 @@ class _OfflineMapInitState extends State<OfflineMapInit> {
                         : const CircularProgressIndicator(),
               ),
             ),
-            TextButton(
-                onPressed: () async {
-                  await GetIt.instance<StoreService>().downloadBathyMetryMapStore(
-                      downloadForeground: true, bound: tempBound, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
-                },
-                child: const Text("Download BathyMetry")),
-            TextButton(
-                onPressed: () async {
-                  await GetIt.instance<StoreService>().downloadBaseMapStore(
-                      downloadForeground: true, bound: tempBound, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
-                },
-                child: const Icon(Icons.download)),
-            TextButton(
-                onPressed: () async {
-                  await GetIt.instance<StoreService>().clearDataFromStore();
-                },
-                child: const Icon(Icons.delete)),
-            const CircularProgressIndicator(),
-            StreamBuilder<DownloadProgress>(
-              stream: GetIt.instance<StoreService>().downloadProgress,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Text(snapshot.error.toString());
-                }
+            StreamBuilder(
+                stream: GetIt.instance<OfflineMapInitScreenBloc>().loadingController,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError || GetIt.instance<OfflineMapInitScreenBloc>().availableFiles.isEmpty) {
+                    return const SizedBox(
+                      child: Text("Something went wrong or no files available for import"),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      if (GetIt.instance<OfflineMapInitScreenBloc>()
+                          .availableFiles
+                          .any((element) => element.path.toLowerCase().contains('bathymetry')))
+                        TextButton(
+                            onPressed: () async {
+                              final res = await GetIt.instance<ImportStoreService>()
+                                  .importStore(files: GetIt.instance<OfflineMapInitScreenBloc>().availableFiles);
+                              debugPrint('IMPORT RESULT');
+                              debugPrint(res.toList().toString());
+                            },
+                            child: const Text("Import BathyMetry")),
+                      if (GetIt.instance<OfflineMapInitScreenBloc>()
+                          .availableFiles
+                          .any((element) => element.path.toLowerCase().contains('basemap')))
+                        TextButton(
+                            onPressed: () async {
+                              // await GetIt.instance<StoreService>().downloadBaseMapStore(
+                              //     downloadForeground: true, bound: tempBound, minZoom: tempMinZoom, maxZoom: tempMaxZoom);
 
-                return Text("${snapshot.data?.percentageProgress} %");
-              },
-            )
+                              await GetIt.instance<ImportStoreService>()
+                                  .importStore(files: GetIt.instance<OfflineMapInitScreenBloc>().availableFiles);
+                            },
+                            child: const Text("Import Base Map")),
+
+                      // IF ANY FILE exist
+                      if (GetIt.instance<OfflineMapInitScreenBloc>()
+                              .availableFiles
+                              .any((element) => element.path.toLowerCase().contains('bathymetry')) ||
+                          GetIt.instance<OfflineMapInitScreenBloc>()
+                              .availableFiles
+                              .any((element) => element.path.toLowerCase().contains('basemap')))
+                        TextButton(
+                            onPressed: () async {
+                              await GetIt.instance<ImportStoreService>().clearDataFromStore();
+                            },
+                            child: const Icon(Icons.delete)),
+                    ],
+                  );
+                }),
           ],
         ),
       ),

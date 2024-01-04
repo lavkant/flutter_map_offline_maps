@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_map/plugin_api.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/download_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:fmtc_plus_background_downloading/fmtc_plus_background_downloading.dart';
+import 'package:fmtc_plus_sharing/fmtc_plus_sharing.dart';
 
 final Map<String, String> baseMapStoreData = {
   "storeName": "baseMap",
@@ -30,6 +33,8 @@ class StoreService {
 
   bool downloadForeground = true;
 
+  List<StoreDirectory>? stores;
+
   Stream<DownloadProgress>? _downloadProgress;
   Stream<DownloadProgress>? get downloadProgress => _downloadProgress;
   void setDownloadProgress(
@@ -38,6 +43,14 @@ class StoreService {
   }) {
     _downloadProgress = newStream;
     // if (notify) notifyListeners();
+  }
+
+  getAvailableStores({List<StoreDirectory>? availableStores}) async {
+    if (availableStores != null || availableStores!.isNotEmpty) {
+      stores = availableStores;
+    } else {
+      stores = await FMTC.instance.rootDirectory.stats.storesAvailableAsync;
+    }
   }
 
   createStoreForBaseMap() async {
@@ -57,8 +70,17 @@ class StoreService {
     );
   }
 
-  get getBaseMapStore => _baseMapStore;
-  get getBaseMapStoreMeta => _baseMapStore?.metadata;
+  importStore({required List<File> files}) async {
+    FMTC.instance.rootDirectory.import.withGUI(
+        // [...files],
+        );
+  }
+
+  get getBaseMapStore => stores![0];
+  get getBaseMapStoreMeta => stores![0].metadata;
+
+  get getBathymetryMapStore => stores![1];
+  get getBathymetryMapStoreMeta => stores![1].metadata;
 
   createbathymetryLayerStore() async {
     bathymetryLayerStore = FMTC.instance(bathyMapStoreData['storeName']!);
@@ -78,8 +100,8 @@ class StoreService {
   }
 
   clearDataFromStore() async {
-    await _baseMapStore?.manage.delete();
-    await bathymetryLayerStore?.manage.delete();
+    await getBaseMapStore?.manage.delete();
+    await getBathymetryMapStore?.manage.delete();
   }
 
   downloadBaseMapStore({
