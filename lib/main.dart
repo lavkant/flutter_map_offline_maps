@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map_offline_poc/src/app.dart';
 import 'package:flutter_map_offline_poc/src/features/download_manager/bloc/download_service_bloc.dart';
-import 'package:flutter_map_offline_poc/src/features/download_manager/bloc/offline_map_init_screen_bloc.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/offline_map_bloc.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/offline_map_init_screen_bloc.dart';
 import 'package:flutter_map_offline_poc/src/services/databse/databse_helper.dart';
 import 'package:flutter_map_offline_poc/src/services/file_handling/file_handling_service.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/download_service.dart';

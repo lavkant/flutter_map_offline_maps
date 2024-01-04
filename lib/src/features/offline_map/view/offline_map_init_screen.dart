@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map_offline_poc/src/features/download_manager/bloc/offline_map_init_screen_bloc.dart';
+import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/offline_map_init_screen_bloc.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/component/store_tile.dart';
 import 'package:flutter_map_offline_poc/src/features/offline_map/view/offline_map_screen.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/import_store_service.dart';
