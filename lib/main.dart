@@ -6,6 +6,7 @@ import 'package:flutter_map_offline_poc/src/features/offline_map/bloc/offline_ma
 import 'package:flutter_map_offline_poc/src/services/databse/databse_helper.dart';
 import 'package:flutter_map_offline_poc/src/services/file_handling/file_handling_service.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/download_service.dart';
+import 'package:flutter_map_offline_poc/src/services/fmtc/download_service2.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/import_store_service.dart';
 import 'package:flutter_map_offline_poc/src/services/fmtc/store_service.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
@@ -32,6 +33,9 @@ void main() async {
     getIt.registerSingleton<DownloadServiceBloc>(DownloadServiceBloc(), signalsReady: true);
     getIt.registerSingleton<FileHandlingService>(FileHandlingService(), signalsReady: true);
     getIt.registerSingleton<OfflineMapInitScreenBloc>(OfflineMapInitScreenBloc(), signalsReady: true);
+
+    // DOWNLOAD MANAGER SERVICE 2
+    getIt.registerSingleton<DownloadManagerService2>(DownloadManagerService2(), signalsReady: true);
 
     // THIS WILL INTIALISE THE DATABASE
     await DatabaseHelper.database;
