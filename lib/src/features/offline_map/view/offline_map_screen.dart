@@ -157,19 +157,35 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                     return FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
-                        center: LatLng(16.159146, 73.332974),
-                        zoom: tempMinZoom * 1.0,
+                        // center: LatLng((tempBound.northEast.latitude + tempBound.northWest.latitude) / 2,
+                        //     (tempBound.northEast.longitude + tempBound.northWest.longitude) / 2),
+                        zoom: (tempMinZoom + tempMaxZoom) / 1.5,
                         maxZoom: tempMaxZoom * 1.0,
+                        nePanBoundary: tempBound.northEast,
+                        swPanBoundary: tempBound.southWest,
+                        slideOnBoundaries: true,
+
+                        // maxBounds: LatLngBounds(tempBound.northEast, tempBound.southWest),
+                        // bounds: LatLngBounds(tempBound.northEast, tempBound.southWest),
+                        // boundsOptions: FitBoundsOptions(maxZoom: tempMaxZoom.toDouble(), inside: true),
+                        // adaptiveBoundaries: true,
+                        // screenSize: MediaQuery.of(context).size,
+                        // slideOnBoundaries: true,
+
                         // maxBounds: LatLngBounds.fromPoints([
-                        //   // LatLng(-90, 180),
-                        //   // LatLng(90, 180),
-                        //   // LatLng(90, -180),
-                        //   // LatLng(-90, -180),
+                        //   tempBound.northEast,
+                        //   // tempBound.northWest,
+                        //   // tempBound.southEast,fffffffffc
+                        //   tempBound.southWest,
                         // ]),
-                        interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+
+                        interactiveFlags: InteractiveFlag.all,
+
+                        // interactiveFlags: InteractiveFlag.drag | InteractiveFlag.rotate,
                         scrollWheelVelocity: 0.002,
                         keepAlive: true,
                         onMapReady: () {
+                          _mapController.centerZoomFitBounds(tempBound);
                           // _updatePointLatLng();
                           // _countTiles();
                         },
@@ -387,7 +403,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             icon: mapUIBloc.enableBathyMetry
                                 ? const Icon(Icons.toggle_on_rounded)
                                 : const Icon(Icons.toggle_off_rounded));
-                      }))
+                      })),
             ],
           );
         },
