@@ -3,16 +3,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_offline_poc/src/features/region_selecor/bloc/download_provider.dart';
 import 'package:flutter_map_offline_poc/src/features/region_selecor/model/region_mode.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:get_it/get_it.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MapStateController {
-  static const double _shapePadding = 15;
+  static const double _shapePadding = 30;
   static const _crosshairsMovement = Point<double>(10, 10);
+  int minZoom = 0;
+  int maxZoom = 14;
   final mapKey = GlobalKey<State<StatefulWidget>>();
   final MapController mapController;
   final BuildContext context;
@@ -28,6 +28,34 @@ class MapStateController {
   late BehaviorSubject<LatLng?> _center;
   late BehaviorSubject<double?> _radius;
 
+  final BehaviorSubject<RegionMode> _regionModeSubject = BehaviorSubject<RegionMode>.seeded(RegionMode.square);
+  BehaviorSubject<RegionMode> get regionModeStream => _regionModeSubject;
+
+  RegionMode get regionMode => _regionModeSubject.value;
+  set regionMode(RegionMode newMode) {
+    _regionModeSubject.add(newMode);
+  }
+
+  final BehaviorSubject<BaseRegion?> _regionSubject = BehaviorSubject<BaseRegion?>.seeded(null);
+  BehaviorSubject<BaseRegion?> get regionStream => _regionSubject;
+
+  BaseRegion? get region => _regionSubject.value;
+  set region(BaseRegion? newRegion) {
+    _regionSubject.add(newRegion);
+  }
+
+  final BehaviorSubject<int?> _regionTilesSubject = BehaviorSubject<int?>.seeded(null);
+  BehaviorSubject<int?> get regionTilesStream => _regionTilesSubject;
+
+  int? get regionTiles => _regionTilesSubject.value;
+  set regionTiles(int? newNum) {
+    _regionTilesSubject.add(newNum);
+  }
+
+  final StreamController<void> _manualPolygonRecalcTrigger = StreamController<void>.broadcast();
+  Stream<void> get manualPolygonRecalcTrigger => _manualPolygonRecalcTrigger.stream;
+  void triggerManualPolygonRecalc() => _manualPolygonRecalcTrigger.add(null);
+
   MapStateController(this.mapController, this.context);
 
   void initStreams() {
@@ -38,7 +66,7 @@ class MapStateController {
     _center = BehaviorSubject<LatLng?>();
     _radius = BehaviorSubject<double?>();
 
-    _manualPolygonRecalcTriggerStream = GetIt.instance<DownloadProvider>().manualPolygonRecalcTrigger.listen((_) {
+    _manualPolygonRecalcTriggerStream = manualPolygonRecalcTrigger.listen((_) {
       updatePointLatLng();
       countTiles();
     });
@@ -62,7 +90,7 @@ class MapStateController {
     _manualPolygonRecalcTriggerStream.cancel();
   }
 
-  bool get shouldShowTargetPolygon => downloadProvider.regionMode != RegionMode.circle;
+  bool get shouldShowTargetPolygon => regionMode != RegionMode.circle;
 
   bool get shouldShowCrosshairs => _crosshairsTop.hasValue && _crosshairsBottom.hasValue;
 
@@ -78,7 +106,7 @@ class MapStateController {
 
   BehaviorSubject<double?> get radiusStream => _radius;
 
-  DownloadProvider get downloadProvider => GetIt.instance<DownloadProvider>();
+  // DownloadProvider get downloadProvider => GetIt.instance<DownloadProvider>();
 
   void updatePointLatLng() {
     final Size mapSize = mapKey.currentContext!.size!;
@@ -90,7 +118,7 @@ class MapStateController {
     late final Point<double> calculatedTopLeft;
     late final Point<double> calculatedBottomRight;
 
-    switch (downloadProvider.regionMode) {
+    switch (regionMode) {
       case RegionMode.square:
         final double offset = (mapSize.shortestSide - (_shapePadding * 2)) / 2;
 
@@ -155,7 +183,7 @@ class MapStateController {
         break;
     }
 
-    if (downloadProvider.regionMode != RegionMode.circle) {
+    if (regionMode != RegionMode.circle) {
       _crosshairsTop.add(calculatedTopLeft - _crosshairsMovement);
       _crosshairsBottom.add(calculatedBottomRight - _crosshairsMovement);
 
@@ -163,48 +191,53 @@ class MapStateController {
       _coordsBottomRight.add(mapController.pointToLatLng(_customPointFromPoint(calculatedBottomRight)));
     }
 
-    downloadProvider.region = downloadProvider.regionMode == RegionMode.circle
+    region = regionMode == RegionMode.circle
         ? CircleRegion(_center.value!, _radius.value!)
         : RectangleRegion(
             LatLngBounds(_coordsTopLeft.value!, _coordsBottomRight.value!),
           );
+    // COUNT TILE IN LAST
+    countTiles();
   }
 
   Future<void> countTiles() async {
-    if (downloadProvider.region != null) {
-      downloadProvider
-        ..regionTiles = null
-        ..regionTiles = await FMTC.instance('').download.check(
-              downloadProvider.region!.toDownloadable(
-                downloadProvider.minZoom,
-                downloadProvider.maxZoom,
-                TileLayer(),
-              ),
-            );
+    if (region != null) {
+      regionTiles = null;
+      regionTiles = await FMTC.instance('').download.check(
+            region!.toDownloadable(
+              minZoom,
+              maxZoom,
+              TileLayer(),
+            ),
+          );
     }
   }
 
   StreamBuilder buildTargetPolygon(MapStateController mapStateController) {
     return StreamBuilder(
-        stream: mapStateController.downloadProvider.regionStream,
+        stream: mapStateController.regionStream,
         builder: (context, snapshot) {
-          return PolygonLayer(
-            polygons: [
-              Polygon(
-                points: [
-                  LatLng(-90, 180),
-                  LatLng(90, 180),
-                  LatLng(90, -180),
-                  LatLng(-90, -180),
-                ],
-                holePointsList: [downloadProvider.region!.toOutline()],
-                isFilled: true,
-                borderColor: Colors.black,
-                borderStrokeWidth: 2,
-                color: Theme.of(context).colorScheme.background.withOpacity(2 / 3),
-              ),
-            ],
-          );
+          return StreamBuilder(
+              stream: mapStateController.regionModeStream,
+              builder: (context, snapshot) {
+                return PolygonLayer(
+                  polygons: [
+                    Polygon(
+                      points: [
+                        LatLng(-90, 180),
+                        LatLng(90, 180),
+                        LatLng(90, -180),
+                        LatLng(-90, -180),
+                      ],
+                      holePointsList: [region!.toOutline()],
+                      isFilled: true,
+                      borderColor: Colors.black,
+                      borderStrokeWidth: 2,
+                      color: Theme.of(context).colorScheme.background.withOpacity(2 / 3),
+                    ),
+                  ],
+                );
+              });
         });
   }
 

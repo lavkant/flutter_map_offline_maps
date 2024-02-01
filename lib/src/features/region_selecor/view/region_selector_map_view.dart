@@ -29,7 +29,7 @@ class _RegionSelectorMapViewState extends State<RegionSelectorMapView> {
     _mapStateController = MapStateController(_mapController, context);
 
     _mapStateController.initStreams();
-    _mapStateController.downloadProvider.region = _mapStateController.downloadProvider.regionMode == RegionMode.circle
+    _mapStateController.region = _mapStateController.regionMode == RegionMode.circle
         ? CircleRegion(
             _mapStateController.centerStream.value ?? LatLng(0, 0), _mapStateController.radiusStream.valueOrNull ?? 0)
         : RectangleRegion(
@@ -78,7 +78,7 @@ class _RegionSelectorMapViewState extends State<RegionSelectorMapView> {
                 backgroundColor: const Color(0xFFaad3df),
               ),
               if (_mapStateController.shouldShowTargetPolygon)
-              _mapStateController.buildTargetPolygon(_mapStateController),
+                _mapStateController.buildTargetPolygon(_mapStateController),
             ],
           ),
           if (_mapStateController.shouldShowCrosshairs) ...[
@@ -110,7 +110,55 @@ class _RegionSelectorMapViewState extends State<RegionSelectorMapView> {
                 );
               },
             ),
-          ]
+          ],
+          Positioned(
+              top: 30,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 50,
+                child: Column(
+                  children: [
+                    StreamBuilder(
+                        stream: _mapStateController.coordsTopLeftStream,
+                        builder: (context, snapshot) {
+                          return Text(
+                              "Lat ${snapshot.data?.longitude.toString()} ${snapshot.data?.longitude.toString()}");
+                        }),
+                    StreamBuilder(
+                        stream: _mapStateController.coordsBottomRightStream,
+                        builder: (context, snapshot) {
+                          return Text(
+                              "Lon ${snapshot.data?.latitude.toString()} ${snapshot.data?.longitude.toString()}");
+                        }),
+                  ],
+                ),
+              )),
+          Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 50,
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    StreamBuilder(
+                        stream: _mapStateController.regionTilesStream,
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const CircularProgressIndicator(
+                              strokeWidth: 1,
+                            );
+                          }
+                          return Text("Tiles Count : ${snapshot.data.toString()}");
+                        })
+                  ],
+                ),
+              ))
         ],
       ),
     );
@@ -133,17 +181,20 @@ class _RegionSelectorMapViewState extends State<RegionSelectorMapView> {
           value: RegionMode.rectangleHorizontal,
           child: Text('Horizontal Rectangle'),
         ),
-        const PopupMenuItem<RegionMode>(
-          value: RegionMode.circle,
-          child: Text('Circle'),
-        ),
+        // const PopupMenuItem<RegionMode>(
+        //   value: RegionMode.circle,
+        //   child: Text('Circle'),
+        // ),
       ],
       elevation: 8.0,
     );
 
     if (selectedMode != null) {
-      _mapStateController.downloadProvider.regionMode = selectedMode;
-      setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapStateController.regionMode = selectedMode;
+        _mapStateController.updatePointLatLng();
+      });
+
       // You might want to trigger other logic based on the selected region mode.
     }
   }

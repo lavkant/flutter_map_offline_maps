@@ -33,6 +33,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     super.initState();
     markerService.getMarkers();
     // Listen to location changes
+    
     Geolocator.getPositionStream().listen((Position position) {
       // setState(() {
       _currentPosition = position;
