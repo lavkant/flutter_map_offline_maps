@@ -10,7 +10,7 @@
             "type": "dart",
             "args": [
                 "--dart-define",
-                "ACCESS_TOKEN=pk.eyJ1IjoibGF2a2FudCIsImEiOiJjbG9qemdzZ3MyNGRoMnFvaWxzMjYzemtoIn0.3lnV7d77eu-M8DnFZpRcoQ"       
+                "ACCESS_TOKEN=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w"       
                 // CF
                 // "ACCESS_TOKEN=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w"       
                 // OFFLINE POC

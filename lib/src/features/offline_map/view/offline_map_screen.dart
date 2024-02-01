@@ -157,9 +157,9 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                     return FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
-                        // center: LatLng((tempBound.northEast.latitude + tempBound.northWest.latitude) / 2,
-                        //     (tempBound.northEast.longitude + tempBound.northWest.longitude) / 2),
-                        zoom: (tempMinZoom + tempMaxZoom) / 1.5,
+                        center: LatLng((tempBound.northEast.latitude + tempBound.northWest.latitude) / 2,
+                            (tempBound.northEast.longitude + tempBound.northWest.longitude) / 2),
+                        zoom: tempMinZoom * 1.0,
                         maxZoom: tempMaxZoom * 1.0,
                         nePanBoundary: tempBound.northEast,
                         swPanBoundary: tempBound.southWest,
