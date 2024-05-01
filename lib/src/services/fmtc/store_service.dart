@@ -6,8 +6,8 @@ import 'package:fmtc_plus_background_downloading/fmtc_plus_background_downloadin
 final Map<String, String> baseMapStoreData = {
   "storeName": "baseMap",
   "sourceURL":
-      // "https://api.mapbox.com/styles/v1/captainfreshin/clchytjyh002915mrs9klczdk/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
-      "https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
+      "https://api.mapbox.com/styles/v1/captainfreshin/cls8pagpx006j01qz6ycx8jn8/tiles/256/%7Bz%7D/%7Bx%7D/%7By%7D@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
+  // "",
   "validDuration": "100",
   "maxLength": "20000"
 };
@@ -15,7 +15,7 @@ final Map<String, String> baseMapStoreData = {
 final Map<String, String> bathyMapStoreData = {
   "storeName": "bathyMetryLayer",
   "sourceURL":
-      "https://api.mapbox.com/styles/v1/captainfreshin/clcsqekjd001n14qz4f6xyorn/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
+      "https://api.mapbox.com/styles/v1/captainfreshin/clcsqekjd001n14qz4f6xyorn/tiles/256/%7Bz%7D/%7Bx%7D/%7By%7D@2x?access_token=pk.eyJ1IjoiY2FwdGFpbmZyZXNoaW4iLCJhIjoiY2xjNXI0cGQ3MHQ3azNvbWg4eWprdWc2MyJ9.wMWDqLuaXJ2aUc8drxbv2w",
   "validDuration": "100",
   "maxLength": "20000"
 };
